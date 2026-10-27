@@ -1,0 +1,56 @@
+molecule:
+  name: LiH
+  geometry: "Li 0 0 0; H 0 0 1.595"  # Angstrom
+  basis: sto-3g
+  charge: 0
+  spin: 0
+  active_space:
+    n_electrons: 4
+    n_orbitals: 4
+
+ansatze:
+  EfficientSU2:
+    reps: 1
+    entanglement: linear
+  UCCSD: {}
+  fUCCSD: {}
+  pp-tUPS:
+    n_layers: 1
+
+vqe:
+  optimizer: SLSQP
+  maxiter: 500
+  seed: 42
+
+backend:
+  name: FakeTorino
+  mode: precision      # "precision" or "shots"
+  precision: 0.01      # used if mode: precision
+  shots: 10000         # used if mode: shots
+  method: density_matrix
+
+mitigation:
+  zne:
+    noise_factors: [1, 3, 5, 7, 9]
+    folding: global
+    poly_order: 2
+    method:
+      EfficientSU2: linear
+      UCCSD: poly
+      fUCCSD: exp
+
+  cdr:
+    k: 1
+    clifford_tol: 1.0e-6
+    max_circuits: 5000
+    sampling: random
+    seed: 42
+    fit: linear
+
+  m0:
+    enabled: true
+
+output:
+  data_dir: data/
+  plots_dir: plots/
+  timestamp: true

@@ -7,3 +7,4 @@ __pycache__/
 outputs/*
 !outputs/.gitkeep
 *.npz
+SlowQuant/
