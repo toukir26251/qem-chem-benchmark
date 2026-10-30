@@ -48,7 +48,8 @@ mitigation:
     fit: linear
 
   m0:
-    enabled: true
+    shots: 100000
+    postselection: false
 
 output:
   data_dir: data/

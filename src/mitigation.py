@@ -12,6 +12,13 @@ from qiskit.circuit.library import RXGate, RYGate, RZGate
 from .backend import get_backend, get_noisy_estimator, get_ideal_estimator, get_transpiled
 from .utils import get_config
 
+import contextlib, io
+from qiskit_aer.primitives import SamplerV2
+from qiskit_nature.second_q.mappers import JordanWignerMapper
+from slowquant.qiskit_interface.circuit_wavefunction import WaveFunctionCircuit
+from slowquant.qiskit_interface.interface import QuantumInterface
+from .chem import get_ansatz, get_molecule, pp_tups_options
+
 
 class ZNE:
     """Zero-noise extrapolation with Mitiq.
@@ -63,6 +70,14 @@ class ZNE:
         self.energies = np.array(energies)
         self.asymptote = self.maximally_mixed_asymptote(transpiled_hamiltonian) + e_nuc
         return self.lambdas, self.energies
+
+    def r_squared(self, method="linear"):
+        """R² of the fit at the measured noise factors."""
+        _, curve = self.extrapolate(method)
+        fitted = np.array([curve(l) for l in self.lambdas])
+        ss_res = np.sum((self.energies - fitted) ** 2)
+        ss_tot = np.sum((self.energies - self.energies.mean()) ** 2)
+        return 1 - ss_res / ss_tot
 
     def extrapolate(self, method="linear"):
         """Zero-noise energy and the fitted curve (for plotting) for 'linear', 'poly' or 'exp'."""
@@ -207,5 +222,46 @@ class CDR:
 
 
 class M0:
-    """M0 mitigation via SlowQuant (to be implemented)."""
-    pass
+    """M0 mitigation through SlowQuant (pp-tUPS, fUCCSD and EfficientSU2)."""
+
+    SLOWQUANT_ANSATZE = {"pp-tUPS": "tUPS", "fUCCSD": "fUCCSD", "EfficientSU2": None}
+
+    def __init__(self):
+        cfg = get_config()["mitigation"].get("m0", {})
+        self.shots = cfg.get("shots", 50000)
+        self.postselection = cfg.get("postselection", False)
+        self.seed = get_config()["vqe"]["seed"]
+
+    def _qi_ansatz(self, name):
+        """SlowQuant ansatz name, or the circuit itself for EfficientSU2."""
+        if name == "EfficientSU2":
+            return get_ansatz(name)[0]
+        return self.SLOWQUANT_ANSATZE[name]
+
+    def _ansatz_options(self, name):
+        if name == "pp-tUPS":
+            return pp_tups_options()
+        return {}  # fUCCSD: SlowQuant defaults; EfficientSU2: custom circuit takes no options
+
+    def _energy(self, name, theta, mitigate):
+        if name not in self.SLOWQUANT_ANSATZE:
+            raise ValueError(f"M0 supports {list(self.SLOWQUANT_ANSATZE)}, got '{name}'")
+        molecule, mf, cas = get_molecule()
+        sampler = SamplerV2.from_backend(get_backend(), seed=self.seed)
+        with contextlib.redirect_stdout(io.StringIO()):
+            QI = QuantumInterface(
+                sampler, self._qi_ansatz(name), JordanWignerMapper(),
+                ansatz_options=self._ansatz_options(name),
+                pass_manager_options={"optimization_level": 3, "seed_transpiler": self.seed},
+                shots=self.shots,
+                do_M_ansatz0=mitigate,
+                do_postselection=mitigate and self.postselection,
+            )
+            wf = WaveFunctionCircuit(cas, mf.mo_coeff, molecule, QI)
+            QI.parameters = list(theta)
+            e = wf.energy_elec
+        return e + molecule.energy_nuc()
+
+    def run(self, name, theta):
+        """(noisy, M0-mitigated) total energies."""
+        return self._energy(name, theta, False), self._energy(name, theta, True)

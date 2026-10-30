@@ -50,7 +50,7 @@ E_fci = mcscf.CASCI(mf, cas[1], cas[0]).run().e_tot
 print(f"HF  : {E_hf:.6f} Ha")
 print(f"FCI : {E_fci:.6f} Ha")
 
-ANSATZE = ["EfficientSU2", "UCCSD", "fUCCSD"]
+ANSATZE = ["EfficientSU2", "UCCSD", "fUCCSD", "pp-tUPS"]
 results = {name: {} for name in ANSATZE}
 
 # ---------------------------------------------------------------- VQE (noiseless) and transpiling

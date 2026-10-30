@@ -48,7 +48,8 @@ mitigation:
     fit: linear             # E_exact = a1 * E_noisy + a2
 
   m0:
-    enabled: true
+    shots: 36000
+    postselection: false
 
 output:
   data_dir: data/

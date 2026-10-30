@@ -15,6 +15,7 @@ from qiskit_nature.second_q.operators import FermionicOp
 from qiskit_nature.second_q.transformers import ActiveSpaceTransformer
 from slowquant.qiskit_interface.circuit_wavefunction import WaveFunctionCircuit
 from slowquant.qiskit_interface.interface import QuantumInterface
+from slowquant.unitary_coupled_cluster.sa_ups_wavefunction import WaveFunctionSAUPS
 
 from .utils import get_config
 
@@ -56,6 +57,11 @@ def get_problem(cfg=None):
         ).transform(problem)
     return problem
 
+def pp_determinant(n_elec, n_orbs):
+    """Perfect-pairing reference, e.g. '11001100' for LiH (4,4). Assumes n_elec <= n_orbs."""
+    n_pairs = n_elec // 2
+    return "1100" * n_pairs + "00" * (n_orbs - 2 * n_pairs)
+
 def get_ansatz(name):
     """Returns (ansatz, qubit_hamiltonian, x0) for one ansatz."""
     mapper = JordanWignerMapper()
@@ -91,7 +97,49 @@ def get_ansatz(name):
         hamiltonian = mapper.map(FermionicOp(h_ferm, 2 * n_act))
         x0 = np.zeros(ansatz.num_parameters)
 
+    # elif name == "pp-tUPS":
+    #     molecule, mf, cas = get_molecule()
+    #     opts = pp_tups_options()
+    #     with contextlib.redirect_stdout(io.StringIO()):
+    #         fwf = WaveFunctionSAUPS(
+    #             cas, mf.mo_coeff, molecule,
+    #             ([[1]], [[pp_determinant(*cas)]]),
+    #             "tUPS", ansatz_options=opts, include_active_kappa=False,
+    #         )
+    #         fwf.thetas = [0.0] * len(fwf.thetas)
+    #         fwf.run_wf_optimization_1step("bfgs", orbital_optimization=False)
+    #         QI = QuantumInterface(StatevectorSampler(), "tUPS", mapper,
+    #                               ansatz_options={"do_pp": True, **opts})
+    #         wf = WaveFunctionCircuit(cas, fwf.c_mo, molecule, QI, force_no_pp_mos=True)
+    #     ansatz = QI.circuit
+    #     n_act = wf.num_active_orbs
+    #     h_ferm = wf._get_hamiltonian().get_qiskit_form(n_act)
+    #     hamiltonian = mapper.map(FermionicOp(h_ferm, 2 * n_act))
+    #     x0 = np.array(fwf.thetas)
+
+    # else:
+    #     raise ValueError(f"Unknown ansatz: {name}")
+
+    # return ansatz, hamiltonian, x0
+
+    elif name == "pp-tUPS":
+        molecule, mf, cas = get_molecule()
+        with contextlib.redirect_stdout(io.StringIO()):
+            QI = QuantumInterface(StatevectorSampler(), "tUPS", mapper,
+                                  ansatz_options=pp_tups_options())
+            # Reorders the HF MOs into perfect-pairing order, so theta = 0 is HF
+            wf = WaveFunctionCircuit(cas, mf.mo_coeff, molecule, QI)
+        ansatz = QI.circuit
+        n_act = wf.num_active_orbs
+        h_ferm = wf._get_hamiltonian().get_qiskit_form(n_act)
+        hamiltonian = mapper.map(FermionicOp(h_ferm, 2 * n_act))
+        x0 = np.zeros(ansatz.num_parameters)
+
     else:
         raise ValueError(f"Unknown ansatz: {name}")
 
     return ansatz, hamiltonian, x0
+
+def pp_tups_options():
+    tups = get_config()["ansatze"].get("pp-tUPS", {})
+    return {"do_pp": True, "n_layers": tups.get("n_layers", 1), "skip_last_singles": False}
