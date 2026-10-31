@@ -29,12 +29,12 @@ class ZNE:
 
     FOLDING = {"random": fold_gates_at_random, "global": fold_global}
 
-    def __init__(self):
+    def __init__(self, seed=42):
         cfg = get_config()["mitigation"]["zne"]
         self.noise_factors = [float(s) for s in cfg["noise_factors"]]
         self.fold = self.FOLDING[cfg.get("folding", "global")]
         self.poly_order = cfg.get("poly_order", 2)
-        self.seed = get_config()["vqe"]["seed"]
+        self.seed = seed
         self.lambdas = None
         self.energies = None
         self.asymptote = None
@@ -49,7 +49,7 @@ class ZNE:
 
     def run(self, transpiled_circuit, transpiled_hamiltonian, e_nuc):
         """Noisy total energies at each noise scale factor."""
-        estimator = get_noisy_estimator()
+        estimator = get_noisy_estimator(self.seed)
 
         def executor(circuit):
             return float(estimator.run([(circuit, transpiled_hamiltonian)]).result()[0].data.evs)
@@ -110,12 +110,12 @@ class CDR:
 
     ROTATIONS = {"rx": RXGate, "ry": RYGate, "rz": RZGate}
 
-    def __init__(self):
+    def __init__(self, seed=42):
         cfg = get_config()["mitigation"]["cdr"]
         self.k = cfg["k"]
         self.tol = cfg.get("clifford_tol", 1e-6)
         self.max_circuits = cfg.get("max_circuits")
-        self.seed = cfg.get("seed")
+        self.seed = seed
         self.X_noisy = None
         self.X_exact = None
         self.a1 = None
@@ -170,7 +170,7 @@ class CDR:
         positions = self.non_clifford_positions(qc)
         n = len(positions)
         total = comb(n, self.k)
-        print(f"n = {n} non-Clifford gates, k = {self.k} -> C(n, k) = {total}")
+        print(f"Seed = {self.seed} n = {n} non-Clifford gates, k = {self.k} -> C(n, k) = {total}")
 
         if self.max_circuits is None or total <= self.max_circuits:
             keeps = list(combinations(range(n), self.k))
@@ -195,10 +195,10 @@ class CDR:
             if transpiled:
                 pubs.append((circ, hamiltonian.apply_layout(circ.layout)))
             else:
-                pubs.append(get_transpiled(circ, [], hamiltonian))
+                pubs.append(get_transpiled(circ, [], hamiltonian, self.seed))
 
         exact = get_ideal_estimator().run(pubs).result()
-        noisy = get_noisy_estimator().run(pubs).result()
+        noisy = get_noisy_estimator(self.seed).run(pubs).result()
         self.X_exact = np.array([r.data.evs for r in exact]) + e_nuc
         self.X_noisy = np.array([r.data.evs for r in noisy]) + e_nuc
         return self.X_noisy, self.X_exact
@@ -226,11 +226,11 @@ class M0:
 
     SLOWQUANT_ANSATZE = {"pp-tUPS": "tUPS", "fUCCSD": "fUCCSD", "EfficientSU2": None}
 
-    def __init__(self):
+    def __init__(self, seed=42):
         cfg = get_config()["mitigation"].get("m0", {})
         self.shots = cfg.get("shots", 50000)
         self.postselection = cfg.get("postselection", False)
-        self.seed = get_config()["vqe"]["seed"]
+        self.seed = seed
 
     def _qi_ansatz(self, name):
         """SlowQuant ansatz name, or the circuit itself for EfficientSU2."""

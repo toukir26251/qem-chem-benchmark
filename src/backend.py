@@ -16,9 +16,8 @@ def get_backend():
     return getattr(fake_provider, get_config()["backend"]["name"])()
 
 
-def get_transpiled(circuit, parameters, hamiltonian):
+def get_transpiled(circuit, parameters, hamiltonian, seed=42):
     """Binds the parameters, transpiles for the backend and maps the Hamiltonian to the layout."""
-    seed = get_config()["vqe"]["seed"]
     bound = circuit.assign_parameters(parameters)
     transpiled = transpile(bound, get_backend(), seed_transpiler=seed)
     return transpiled, hamiltonian.apply_layout(transpiled.layout)
@@ -32,14 +31,14 @@ def get_ideal_estimator():
     })
 
 
-def get_noisy_estimator(seed=None):
+def get_noisy_estimator(seed=42):
     """Returns a noisy Aer estimator with the backend's noise model.
 
     mode: precision -> default_precision from the config
     mode: shots     -> default_precision = 1/sqrt(shots)
     """
     cfg = get_config()["backend"]
-    seed = get_config()["vqe"]["seed"] if seed is None else seed
+    seed = seed
 
     if cfg["mode"] == "precision":
         precision = cfg["precision"]
@@ -58,10 +57,10 @@ def get_noisy_estimator(seed=None):
     })
 
 
-def get_noisy_sampler(seed=None):
+def get_noisy_sampler(seed=42):
     """Returns a noisy Aer sampler (needed for SlowQuant / M0)."""
     cfg = get_config()["backend"]
-    seed = get_config()["vqe"]["seed"] if seed is None else seed
+    seed = seed
     return SamplerV2(
         default_shots=cfg["shots"],
         seed=seed,

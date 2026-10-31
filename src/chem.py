@@ -62,7 +62,7 @@ def pp_determinant(n_elec, n_orbs):
     n_pairs = n_elec // 2
     return "1100" * n_pairs + "00" * (n_orbs - 2 * n_pairs)
 
-def get_ansatz(name):
+def get_ansatz(name, seed=42):
     """Returns (ansatz, qubit_hamiltonian, x0) for one ansatz."""
     mapper = JordanWignerMapper()
     problem = get_problem()
@@ -77,7 +77,7 @@ def get_ansatz(name):
             entanglement=su2.get("entanglement", "linear"),
         )
         hamiltonian = mapper.map(problem.hamiltonian.second_q_op())
-        rng = np.random.default_rng(42)
+        rng = np.random.default_rng(seed)
         x0 = rng.uniform(-np.pi, np.pi, ansatz.num_parameters)
 
     elif name == "UCCSD":
