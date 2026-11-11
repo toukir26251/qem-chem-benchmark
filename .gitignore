@@ -8,3 +8,6 @@ outputs/*
 !outputs/.gitkeep
 *.npz
 SlowQuant/
+
+plots/*
+!plots/.gitkeep

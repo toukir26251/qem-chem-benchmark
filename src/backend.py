@@ -16,10 +16,15 @@ def get_backend():
     return getattr(fake_provider, get_config()["backend"]["name"])()
 
 
+def get_optimization_level():
+    """Transpiler optimization level from the config (backend.optimization_level)."""
+    return get_config()["backend"]["optimization_level"]
+
+
 def get_transpiled(circuit, parameters, hamiltonian, seed=42):
     """Binds the parameters, transpiles for the backend and maps the Hamiltonian to the layout."""
     bound = circuit.assign_parameters(parameters)
-    transpiled = transpile(bound, get_backend(), seed_transpiler=seed)
+    transpiled = transpile(bound, get_backend(), optimization_level=get_optimization_level(), seed_transpiler=seed)
     return transpiled, hamiltonian.apply_layout(transpiled.layout)
 
 
@@ -38,7 +43,7 @@ def get_noisy_estimator(seed=42):
     mode: shots     -> default_precision = 1/sqrt(shots)
     """
     cfg = get_config()["backend"]
-    seed = seed
+    print(f"SEED from get_noisy_estimator = {seed}")
 
     if cfg["mode"] == "precision":
         precision = cfg["precision"]
@@ -55,6 +60,13 @@ def get_noisy_estimator(seed=42):
         "default_precision": precision,
         "run_options": {"seed_simulator": seed},
     })
+
+
+def get_noisy_energy(transpiled_ansatz, transpiled_hamiltonian, e_nuc, seed=42):
+    """Total noisy energy of an already transpiled circuit (one shared E_noisy for ZNE, CDR and M0)."""
+    estimator = get_noisy_estimator(seed)
+    result = estimator.run([(transpiled_ansatz, transpiled_hamiltonian)]).result()
+    return float(result[0].data.evs) + e_nuc
 
 
 def get_noisy_sampler(seed=42):

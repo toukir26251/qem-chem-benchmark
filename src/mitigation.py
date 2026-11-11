@@ -9,7 +9,7 @@ from mitiq.zne.inference import ExpFactory, LinearFactory, PolyFactory
 from mitiq.zne.scaling import fold_gates_at_random, fold_global
 from qiskit.circuit.library import RXGate, RYGate, RZGate
 
-from .backend import get_backend, get_noisy_estimator, get_ideal_estimator, get_transpiled
+from .backend import get_backend, get_noisy_estimator, get_ideal_estimator, get_optimization_level, get_transpiled
 from .utils import get_config
 
 import contextlib, io
@@ -47,8 +47,12 @@ class ZNE:
                 return coeff.real
         return 0.0
 
-    def run(self, transpiled_circuit, transpiled_hamiltonian, e_nuc):
-        """Noisy total energies at each noise scale factor."""
+    def run(self, transpiled_circuit, transpiled_hamiltonian, e_nuc, E_noisy=None):
+        """Noisy total energies at each noise scale factor.
+
+        E_noisy: precomputed noisy energy of the unfolded circuit; used as the lambda = 1 point
+        so ZNE starts from the same noisy value as CDR and M0.
+        """
         estimator = get_noisy_estimator(self.seed)
 
         def executor(circuit):
@@ -56,6 +60,9 @@ class ZNE:
 
         energies = []
         for s in self.noise_factors:
+            if s == 1.0 and E_noisy is not None:
+                energies.append(float(E_noisy))
+                continue
             if self.fold is fold_gates_at_random:
                 scaled = self.fold(transpiled_circuit, s, seed=self.seed)
             else:
@@ -120,6 +127,7 @@ class CDR:
         self.X_exact = None
         self.a1 = None
         self.a2 = None
+        print(f"SEED from Constructor = {self.seed}")
 
     # --- your notebook functions
 
@@ -210,6 +218,7 @@ class CDR:
 
     def mitigate(self, noisy_energy):
         """Apply the fit to a noisy energy (or an array of them)."""
+        print(f"SEED from mitigate = {self.seed}, a1 = {self.a1}, a2 = {self.a2}, noisy_energy = {noisy_energy}")
         return self.a1 * np.asarray(noisy_energy) + self.a2
 
     def save(self, path):
@@ -252,7 +261,7 @@ class M0:
             QI = QuantumInterface(
                 sampler, self._qi_ansatz(name), JordanWignerMapper(),
                 ansatz_options=self._ansatz_options(name),
-                pass_manager_options={"optimization_level": 3, "seed_transpiler": self.seed},
+                pass_manager_options={"optimization_level": get_optimization_level(), "seed_transpiler": self.seed},
                 shots=self.shots,
                 do_M_ansatz0=mitigate,
                 do_postselection=mitigate and self.postselection,

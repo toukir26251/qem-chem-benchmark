@@ -77,7 +77,9 @@ def get_ansatz(name, seed=42):
             entanglement=su2.get("entanglement", "linear"),
         )
         hamiltonian = mapper.map(problem.hamiltonian.second_q_op())
-        rng = np.random.default_rng(seed)
+        # Fixed start, the same for every seed. Small angles near 0 get stuck at the HF energy;
+        # default_rng(1) was chosen because it reaches FCI for H2.
+        rng = np.random.default_rng(1)
         x0 = rng.uniform(-np.pi, np.pi, ansatz.num_parameters)
 
     elif name == "UCCSD":
