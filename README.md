@@ -10,7 +10,7 @@ Molecules, ansätze, backend and mitigation settings are set in YAML files under
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/qem-chem-benchmark.git
+   git clone https://github.com/toukir26251/qem-chem-benchmark.git
    cd qem-chem-benchmark
    ```
 

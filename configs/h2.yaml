@@ -20,13 +20,13 @@ ansatze:
 vqe:
   optimizer: SLSQP
   maxiter: 500
-  seeds: [37, 42, 99, 134]
+  seeds: [37, 42, 98, 134]
 
 backend:
   name: FakeTorino
   optimization_level: 3   # transpiler level, shared by ZNE, CDR and M0
   mode: precision      # "precision" or "shots"
-  precision: 0.001     # used if mode: precision
+  precision: 0.01     # used if mode: precision
   shots: 10000         # used if mode: shots
   method: density_matrix
 
