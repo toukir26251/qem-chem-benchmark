@@ -20,7 +20,7 @@ ansatze:
 vqe:
   optimizer: SLSQP
   maxiter: 500
-  seeds: [37, 42, 98, 134]
+  seeds: [37, 42, 99, 134]
 
 backend:
   name: FakeTorino
