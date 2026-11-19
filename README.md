@@ -121,6 +121,12 @@ jupyter lab
 
 The notebooks follow the same steps as the script. Two differences: they always run ZNE, CDR and M0 (the `mitigation:` selection is not used), and they always pick the ZNE fit by R² (the `method:` setting is not used). The first code cell sets the output folders (see below). The training step for CDR is slow; a markdown cell shows how to load saved training data instead.
 
+## Example benchmarking
+
+Comparison of the absolute energy error of Noisy, ZNE, CDR and M0 for LiH:
+
+![LiH mitigation errors](docs/LiH_mitigation_errors.png)
+
 ## Want to benchmark another molecule or system?
 
 You do not need to change any code. A new system is just a new config file.
