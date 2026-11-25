@@ -70,12 +70,13 @@ def get_ansatz(name, seed=42):
     n_particles = problem.num_particles
 
     if name == "EfficientSU2":
+        hf = HartreeFock(n_orbs, n_particles, mapper)
         su2 = get_config()["ansatze"].get("EfficientSU2", {})
-        ansatz = efficient_su2(
+        ansatz = hf.compose(efficient_su2(
             2 * n_orbs,
             reps=su2.get("reps", 1),
             entanglement=su2.get("entanglement", "linear"),
-        )
+        ))
         hamiltonian = mapper.map(problem.hamiltonian.second_q_op())
         # Fixed start, the same for every seed. Small angles near 0 get stuck at the HF energy;
         # default_rng(1) was chosen because it reaches FCI for H2.
@@ -124,11 +125,11 @@ def get_ansatz(name, seed=42):
 
     # return ansatz, hamiltonian, x0
 
-    elif name == "pp-tUPS":
+    elif name == "tUPS":
         molecule, mf, cas = get_molecule()
         with contextlib.redirect_stdout(io.StringIO()):
             QI = QuantumInterface(StatevectorSampler(), "tUPS", mapper,
-                                  ansatz_options=pp_tups_options())
+                                  ansatz_options=tups_options())
             # Reorders the HF MOs into perfect-pairing order, so theta = 0 is HF
             wf = WaveFunctionCircuit(cas, mf.mo_coeff, molecule, QI)
         ansatz = QI.circuit
@@ -142,6 +143,6 @@ def get_ansatz(name, seed=42):
 
     return ansatz, hamiltonian, x0
 
-def pp_tups_options():
-    tups = get_config()["ansatze"].get("pp-tUPS", {})
-    return {"do_pp": True, "n_layers": tups.get("n_layers", 1), "skip_last_singles": False}
+def tups_options():
+    tups = get_config()["ansatze"].get("tUPS", {})
+    return {"do_pp": False, "n_layers": tups.get("n_layers", 1), "skip_last_singles": False}

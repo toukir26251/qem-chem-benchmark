@@ -17,7 +17,7 @@ from qiskit_aer.primitives import SamplerV2
 from qiskit_nature.second_q.mappers import JordanWignerMapper
 from slowquant.qiskit_interface.circuit_wavefunction import WaveFunctionCircuit
 from slowquant.qiskit_interface.interface import QuantumInterface
-from .chem import get_ansatz, get_molecule, pp_tups_options
+from .chem import get_ansatz, get_molecule, tups_options
 
 
 class ZNE:
@@ -231,9 +231,9 @@ class CDR:
 
 
 class M0:
-    """M0 mitigation through SlowQuant (pp-tUPS, fUCCSD and EfficientSU2)."""
+    """M0 mitigation through SlowQuant (tUPS, fUCCSD and EfficientSU2)."""
 
-    SLOWQUANT_ANSATZE = {"pp-tUPS": "tUPS", "fUCCSD": "fUCCSD", "EfficientSU2": None}
+    SLOWQUANT_ANSATZE = {"tUPS": "tUPS", "fUCCSD": "fUCCSD", "EfficientSU2": None}
 
     def __init__(self, seed=42):
         cfg = get_config()["mitigation"].get("m0", {})
@@ -248,8 +248,8 @@ class M0:
         return self.SLOWQUANT_ANSATZE[name]
 
     def _ansatz_options(self, name):
-        if name == "pp-tUPS":
-            return pp_tups_options()
+        if name == "tUPS":
+            return tups_options()
         return {}  # fUCCSD: SlowQuant defaults; EfficientSU2: custom circuit takes no options
 
     def _energy(self, name, theta, mitigate):

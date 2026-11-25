@@ -14,7 +14,7 @@ ansatze:
     entanglement: linear
   UCCSD: {}
   fUCCSD: {}
-  pp-tUPS:
+  tUPS:
     n_layers: 1
 
 vqe:

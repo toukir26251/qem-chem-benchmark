@@ -229,7 +229,7 @@ if "zne" in RUN:
         mean = np.array([e.mean() for e in errs_])
         std = np.array([e.std() for e in errs_])
         bars = ax.bar(x + (i - 0.5) * w, mean, w, color=color, label=label)
-        ax.bar_label(bars, labels=[f"{m:.4f} ± {sd:.4f}" for m, sd in zip(mean, std)], fontsize=6, rotation=90, padding=4)
+        ax.bar_label(bars, labels=[f"{m:.6f} ± {sd:.6f}" for m, sd in zip(mean, std)], fontsize=6, rotation=90, padding=4)
 
     ax.axhline(1.6e-3, color="gray", ls="--", label="Chemical accuracy")
     ax.set_xticks(x)
@@ -301,7 +301,7 @@ if "cdr" in RUN:
         mean = np.array([e.mean() for e in errs_])
         std = np.array([e.std() for e in errs_])
         bars = ax.bar(x + (i - 0.5) * w, mean, w, color=color, label=label)
-        ax.bar_label(bars, labels=[f"{m:.4f} ± {sd:.4f}" for m, sd in zip(mean, std)], fontsize=6, rotation=90, padding=4)
+        ax.bar_label(bars, labels=[f"{m:.6f} ± {sd:.6f}" for m, sd in zip(mean, std)], fontsize=6, rotation=90, padding=4)
 
     ax.axhline(1.6e-3, color="gray", ls="--", label="Chemical accuracy")
     ax.set_xticks(x)
@@ -348,7 +348,7 @@ if "m0" in RUN:
         mean = np.array([e.mean() for e in errs_])
         std = np.array([e.std() for e in errs_])
         bars = ax.bar(x + (i - 0.5) * w, mean, w, color=color, label=label)
-        ax.bar_label(bars, labels=[f"{m:.4f} ± {sd:.4f}" for m, sd in zip(mean, std)], fontsize=6, rotation=90, padding=4)
+        ax.bar_label(bars, labels=[f"{m:.6f} ± {sd:.6f}" for m, sd in zip(mean, std)], fontsize=6, rotation=90, padding=4)
 
     ax.axhline(1.6e-3, color="gray", ls="--", label="Chemical accuracy")
     ax.set_xticks(x)
