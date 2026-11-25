@@ -16,6 +16,7 @@ ansatze:
   fUCCSD: {}
   tUPS:
     n_layers: 1
+    do_pp: True
 
 vqe:
   optimizer: SLSQP
@@ -48,7 +49,7 @@ mitigation:
     fit: linear
 
   m0:
-    shots: 100000
+    shots: 10000
     postselection: false
 
 output:

@@ -412,7 +412,7 @@ for i, (key, label) in enumerate(methods):
     mean = np.array([errs(n, key).mean() for n in ANSATZE])
     std = np.array([errs(n, key).std() for n in ANSATZE])
     bars = ax.bar(x + (i - (n_m - 1) / 2) * w, mean, w, label=label)
-    ax.bar_label(bars, labels=[f"{m:.6f} ± {sd:.4f}" for m, sd in zip(mean, std)], fontsize=6, rotation=90, padding=4)
+    ax.bar_label(bars, labels=[f"{m:.6f} ± {sd:.6f}" for m, sd in zip(mean, std)], fontsize=6, rotation=90, padding=4)
 
 plt.axhline(1.6e-3, color="gray", ls="--", label="Chemical accuracy")
 

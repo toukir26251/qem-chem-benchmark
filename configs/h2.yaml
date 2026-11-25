@@ -16,6 +16,7 @@ ansatze:
   fUCCSD: {}
   tUPS:
     n_layers: 1
+    do_pp: True
 
 vqe:
   optimizer: SLSQP
@@ -41,14 +42,14 @@ mitigation:
       fUCCSD: poly
 
   cdr:
-    k: 2                    # non-Clifford gates kept per training circuit
+    k: 1                    # non-Clifford gates kept per training circuit
     clifford_tol: 1.0e-6    # tolerance for detecting Clifford angles
     max_circuits: 1000      # cap on C(n, k); sample if exceeded
     sampling: random
     fit: linear             # E_exact = a1 * E_noisy + a2
 
   m0:
-    shots: 36000
+    shots: 10000
     postselection: false
 
 output:
