@@ -1,4 +1,4 @@
-"""Benchmark: EfficientSU2, UCCSD, fUCCSD and pp-tUPS with ZNE, CDR and M0.
+"""Benchmark: EfficientSU2, UCCSD, fUCCSD and tUPS with ZNE, CDR and M0.
 
 Runs the same steps as notebooks/01_H2_benchmark.ipynb and 02_LiH_benchmark.ipynb,
 with the molecule taken from the config file.
@@ -81,7 +81,7 @@ print(f"HF  : {E_hf:.6f} Ha")
 print(f"FCI : {E_fci:.6f} Ha")
 end_cell()
 
-ANSATZE = ["EfficientSU2", "UCCSD", "fUCCSD", "pp-tUPS"]
+ANSATZE = ["EfficientSU2", "UCCSD", "fUCCSD", "tUPS"]
 
 # Which error-mitigation methods run: whatever is listed under `mitigation:` in the config
 # (zne, cdr, m0). To skip one, remove or comment it out in the yaml.
@@ -319,7 +319,7 @@ if "cdr" in RUN:
 # ---------------------------------------------------------------- M0
 if "m0" in RUN:
 
-    M0_ANSATZE = ["fUCCSD", "pp-tUPS"]   # M0 only works with SlowQuant ansatze
+    M0_ANSATZE = ["fUCCSD", "tUPS"]   # M0 only works with SlowQuant ansatze
 
     for name in ANSATZE:
         for seed in SEEDS:
